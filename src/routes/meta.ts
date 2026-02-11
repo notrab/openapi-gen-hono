@@ -1,73 +1,22 @@
 /**
  * Meta API routes — mirrors apps/ensapi/src/handlers/ensnode-api.ts
  *
- * Demonstrates config and indexing-status routes.
+ * Imports route definitions from route-definitions.ts and wires them to
+ * stub handlers. In the real codebase, config comes from buildEnsApiPublicConfig()
+ * and indexing status from middleware context.
  */
 import { Hono } from "hono";
-import { describeRoute, resolver as validationResolver } from "hono-openapi";
-import { z } from "zod";
+
+import { configRoute, indexingStatusRoute } from "../route-definitions.js";
 
 const app = new Hono();
 
-const PublicConfigSchema = z.object({
-  version: z.string(),
-  namespace: z.string(),
+app.get(configRoute.path, configRoute.describe, async (c) => {
+  return c.json({ version: "0.0.1", namespace: "mainnet" });
 });
 
-app.get(
-  "/config",
-  describeRoute({
-    tags: ["Meta"],
-    summary: "Get ENSApi Public Config",
-    description: "Gets the public config of the ENSApi instance",
-    responses: {
-      200: {
-        description: "Successfully retrieved ENSApi public config",
-        content: {
-          "application/json": {
-            schema: validationResolver(PublicConfigSchema),
-          },
-        },
-      },
-    },
-  }),
-  async (c) => {
-    return c.json({ version: "0.0.1", namespace: "mainnet" });
-  },
-);
-
-const IndexingStatusSchema = z.object({
-  status: z.enum(["ok", "error"]),
+app.get(indexingStatusRoute.path, indexingStatusRoute.describe, async (c) => {
+  return c.json({ status: "ok" as const });
 });
-
-app.get(
-  "/indexing-status",
-  describeRoute({
-    tags: ["Meta"],
-    summary: "Get ENSIndexer Indexing Status",
-    description: "Returns the indexing status snapshot most recently captured from ENSIndexer",
-    responses: {
-      200: {
-        description: "Successfully retrieved indexing status",
-        content: {
-          "application/json": {
-            schema: validationResolver(IndexingStatusSchema),
-          },
-        },
-      },
-      503: {
-        description: "Indexing status snapshot unavailable",
-        content: {
-          "application/json": {
-            schema: validationResolver(IndexingStatusSchema),
-          },
-        },
-      },
-    },
-  }),
-  async (c) => {
-    return c.json({ status: "ok" as const });
-  },
-);
 
 export default app;

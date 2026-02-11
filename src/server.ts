@@ -12,12 +12,47 @@
 import { serve } from "@hono/node-server";
 import { openAPIRouteHandler } from "hono-openapi";
 
-import { app, openAPIDocumentation } from "./app.js";
+import { app } from "./app.js";
 
 // Register the runtime /openapi.json endpoint (same as the current ensapi behaviour)
 app.get(
   "/openapi.json",
-  openAPIRouteHandler(app, { documentation: openAPIDocumentation }),
+  openAPIRouteHandler(app, {
+    documentation: {
+      info: {
+        title: "ENSApi APIs",
+        version: "0.0.1",
+        description:
+          "APIs for ENS resolution, navigating the ENS nameforest, and metadata about an ENSNode",
+      },
+      servers: [
+        {
+          url: "https://api.alpha.ensnode.io",
+          description: "ENSNode Alpha (Mainnet)",
+        },
+        {
+          url: "https://api.alpha-sepolia.ensnode.io",
+          description: "ENSNode Alpha (Sepolia Testnet)",
+        },
+        { url: "http://localhost:3000", description: "Local Development" },
+      ],
+      tags: [
+        {
+          name: "Resolution",
+          description: "APIs for resolving ENS names and addresses",
+        },
+        {
+          name: "Meta",
+          description:
+            "APIs for indexing status, configuration, and realtime monitoring",
+        },
+        {
+          name: "Explore",
+          description: "APIs for exploring the indexed state of ENS",
+        },
+      ],
+    },
+  }),
 );
 
 const port = 3000;
